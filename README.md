@@ -32,22 +32,27 @@ El sitio es **estático**: todo el juego es una isla de Svelte que habla con
 Supabase desde el navegador. No hay servidor, ni funciones, ni adaptador. Sale
 gratis en el plan Hobby y no tiene arranque en frío.
 
-### 1. Sube el repositorio a GitHub
+### 1. El repositorio
 
-Vercel despliega desde un repositorio. El `.env` está en `.gitignore`, así que
-las claves **no** viajan: se ponen en el paso 3.
+Esta carpeta es un repositorio propio, independiente del de la app de iOS:
+
+> https://github.com/carlos123ordaz/preguntas
+
+El `.env` está en `.gitignore`, así que las claves **no** viajan: se ponen en el
+paso 3.
 
 ### 2. Importa el proyecto en Vercel
 
-En [vercel.com/new](https://vercel.com/new), elige el repositorio y cambia una
-cosa importante:
+En [vercel.com/new](https://vercel.com/new), elige el repositorio `preguntas` y
+dale a Deploy sin tocar nada más.
 
-> **Root Directory → `web`**
+**Root Directory se deja como está (`./`)**, porque el `package.json` está en la
+raíz de este repositorio. El resto (framework Astro, `npm install`, `astro
+build`, salida en `dist/`) lo detecta solo, y de todas formas está escrito en
+`vercel.json`.
 
-Este repositorio tiene la app de iOS en la raíz y la web en `web/`. Si no lo
-cambias, Vercel busca un `package.json` en la raíz y falla. El resto (framework
-Astro, `npm install`, `astro build`, salida en `dist/`) lo detecta solo, y de
-todas formas está escrito en `vercel.json`.
+El primer despliegue va a funcionar pero sin conexión a Supabase: enseñará la
+pantalla de "Falta conectar Supabase" hasta que hagas el paso 3.
 
 ### 3. Variables de entorno
 
