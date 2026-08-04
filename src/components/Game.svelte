@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { fly } from "svelte/transition";
   import { Game } from "../lib/game.svelte";
   import { supportEmail } from "../lib/supabase";
@@ -25,9 +26,11 @@
     return `game-${game.phase}`;
   });
 
-  $effect(() => {
-    void game.restoreSession();
+  // Fuera de `$effect`: `restoreSession` toca estado del juego (`room`, `busy`)
+  // que el propio efecto acabaría observando, y se reejecutaría en bucle.
+  onMount(() => { void game.restoreSession(); });
 
+  $effect(() => {
     // Al volver de otra pestaña puede haberse perdido algún evento.
     const wake = () => {
       if (document.visibilityState === "visible") void game.resume();
