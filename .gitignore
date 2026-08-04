@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.vercel/
+.DS_Store
+
+# Las claves nunca al repositorio. En Vercel se ponen como variables de entorno.
+.env
+.env.production
+.env.local
