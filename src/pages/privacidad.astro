@@ -1,0 +1,126 @@
+---
+import Doc from "../layouts/Doc.astro";
+
+const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
+---
+
+<Doc
+  title="Política de privacidad"
+  description="Qué guarda Anónimas, dónde, cuánto tiempo y cómo pedir que se borre. Sin cuentas, sin publicidad, sin seguimiento."
+  updated="4 de agosto de 2026"
+>
+  <p>
+    Esta política vale igual para la app de iPhone <strong>Anónimas</strong> y para la
+    versión web. Las dos comparten la misma base de datos y guardan exactamente lo mismo.
+  </p>
+
+  <div class="card">
+    <p>
+      <strong>En corto:</strong> no hay cuentas ni registro. No se pide el correo, ni el
+      teléfono, ni el nombre real. No hay publicidad, ni analítica, ni seguimiento, ni
+      cookies. Las preguntas y las respuestas se guardan sin ninguna referencia a quién
+      las escribió, y la sala entera se borra al acabar.
+    </p>
+  </div>
+
+  <h2>Quién es responsable</h2>
+  <p>
+    Carlos Jesús Ordaz Hoyos, desarrollador particular de la app. Para cualquier cosa
+    relacionada con esta política: <a href={`mailto:${email}`}>{email}</a>.
+  </p>
+
+  <h2>Qué se guarda</h2>
+
+  <h3>En tu dispositivo</h3>
+  <p>
+    Solo para que no tengas que volver a escribirlo cada vez, y para poder devolverte a
+    tu partida si cierras la app. En el iPhone se guarda en el almacenamiento de la app;
+    en la web, en el almacenamiento local del navegador. No sale de ahí ni lo lee nadie.
+  </p>
+  <ul>
+    <li>Un <strong>identificador aleatorio</strong> que se genera la primera vez. No está ligado a ti ni al dispositivo: si borras la app, desaparece y la siguiente vez es otro distinto.</li>
+    <li>El <strong>apodo</strong> y el <strong>avatar</strong> que elegiste.</li>
+    <li>Si ya aceptaste las normas, y en qué sala estabas.</li>
+  </ul>
+
+  <h3>En el servidor, mientras dura la partida</h3>
+  <ul>
+    <li><strong>La sala:</strong> su código de cinco letras, en qué fase va y la ronda.</li>
+    <li><strong>Los participantes:</strong> el apodo, el avatar, el identificador aleatorio de arriba y si ya han enviado su pregunta o sus respuestas. El apodo lo eliges tú y lo ven los demás jugadores: no hace falta que sea tu nombre real.</li>
+    <li>
+      <strong>Las preguntas y las respuestas:</strong> solo el texto.
+      <strong>No se guarda quién las escribió ni cuándo.</strong> Las tablas ni siquiera
+      tienen una columna para eso, y el orden en que aparecen es aleatorio para que la
+      secuencia no delate nada. No es una promesa de la pantalla: no existe el dato.
+    </li>
+  </ul>
+
+  <h3>Cuando denuncias algo</h3>
+  <p>
+    Al tocar la bandera de una pregunta o una respuesta se guarda una copia de ese texto,
+    el motivo, el código de la sala y el identificador aleatorio de quien denuncia (para
+    poder detectar denuncias en masa). De quien escribió el contenido no se guarda nada,
+    porque tampoco se sabe. Las denuncias solo las puedo leer yo.
+  </p>
+
+  <h2>Qué no se guarda</h2>
+  <ul>
+    <li>Correo, teléfono, nombre real, fecha de nacimiento ni ningún dato de contacto.</li>
+    <li>Contactos, fotos, micrófono, cámara ni ubicación. La app no los pide.</li>
+    <li>Identificadores publicitarios ni de seguimiento. No hay publicidad.</li>
+    <li>Analítica de uso, mapas de calor ni cookies de terceros.</li>
+  </ul>
+
+  <h2>Para qué se usa</h2>
+  <p>
+    Únicamente para que la partida funcione: repartir las preguntas, saber cuándo han
+    contestado todos y enseñar el resultado. Nada se usa para perfilar, para vender ni
+    para tomar decisiones automáticas sobre nadie.
+  </p>
+
+  <h2>Cuánto tiempo se guarda</h2>
+  <ul>
+    <li>Cuando la última persona sale de una sala, <strong>la sala se borra sola</strong>, y con ella todas sus preguntas y respuestas.</li>
+    <li>Las salas que queden abandonadas se borran a las <strong>12 horas</strong> como máximo.</li>
+    <li>Las denuncias se conservan hasta que las reviso, y como mucho <strong>90 días</strong>.</li>
+    <li>Lo que está en tu dispositivo se borra al desinstalar la app o al limpiar los datos del navegador.</li>
+  </ul>
+
+  <h2>Quién más lo ve</h2>
+  <p>
+    La base de datos está alojada en <strong>Supabase</strong>, que actúa solo como
+    proveedor de infraestructura y no usa estos datos para nada propio. La versión web
+    está alojada en <strong>Vercel</strong>, que registra peticiones de servidor con la
+    dirección IP durante un tiempo corto por seguridad y para que la web funcione, como
+    cualquier servidor. No se vende ni se cede nada a nadie más, ni con fines publicitarios
+    ni de ningún otro tipo.
+  </p>
+
+  <h2>Tus derechos</h2>
+  <p>
+    Puedes pedir acceso a lo que haya sobre ti, su corrección o su borrado, escribiendo a
+    <a href={`mailto:${email}`}>{email}</a>. Ten en cuenta lo que implica el anonimato:
+    <strong>no puedo localizar qué preguntas o respuestas escribiste</strong>, porque ese
+    vínculo no existe en ninguna parte. Lo que sí puedo hacer es borrar una sala entera si
+    me pasas su código. Y salir de la partida ya borra tu apodo y tu avatar del servidor
+    al momento.
+  </p>
+  <p>
+    Si crees que no se ha tratado bien tu información, puedes reclamar ante la Agencia
+    Española de Protección de Datos (<a href="https://www.aepd.es" rel="noopener">aepd.es</a>).
+  </p>
+
+  <h2>Menores</h2>
+  <p>
+    La app no está dirigida a menores de 13 años y no se dirige publicidad a nadie. Las
+    preguntas las escriben los propios jugadores, así que el contenido depende del grupo:
+    las normas prohíben el acoso, las amenazas y el contenido sexual, y cualquiera puede
+    denunciar lo que vea desde la propia partida.
+  </p>
+
+  <h2>Cambios</h2>
+  <p>
+    Si algo de esto cambia, se actualiza esta página y la fecha de arriba. Escribe a
+    <a href={`mailto:${email}`}>{email}</a> si te queda cualquier duda.
+  </p>
+</Doc>

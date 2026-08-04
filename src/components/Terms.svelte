@@ -39,6 +39,12 @@
     <div in:fly={{ y: 22, duration: 420, delay: 120 }}>
       <p class="eyebrow">¿Algo que contarnos?</p>
       <a class="mail" href="mailto:{supportEmail}">{supportEmail}</a>
+      <!-- Las dos páginas que App Store Connect pide por URL pública. Se abren
+           fuera para no tumbar la partida que haya en marcha. -->
+      <nav class="links">
+        <a href="/soporte" target="_blank" rel="noopener">Soporte</a>
+        <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a>
+      </nav>
     </div>
 
     <p class="muted tiny" in:fly={{ y: 22, duration: 420, delay: 180 }}>
@@ -67,6 +73,8 @@
   h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
   .rule p { font-size: 14px; line-height: 1.45; }
   .mail { display: block; margin-top: 8px; font-size: 17px; color: var(--text); text-decoration: none; word-break: break-all; }
+  .links { display: flex; gap: 18px; margin-top: 12px; }
+  .links a { font-size: 13px; font-weight: 700; color: var(--text-2); }
   .tiny { font-size: 12px; line-height: 1.5; }
   footer { padding: 0 24px 20px; }
 </style>

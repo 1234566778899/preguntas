@@ -1,0 +1,103 @@
+---
+import Doc from "../layouts/Doc.astro";
+
+const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
+
+const faqs = [
+  {
+    q: "¿Cómo se juega?",
+    a: "Alguien crea una sala y enseña el código de cinco letras. Los demás entran con ese código. Cuando estáis todos, quien creó la sala arranca la partida: cada persona escribe una pregunta, después todo el mundo responde todas las preguntas —incluida la suya— y al final se revela la ronda entera sin ningún nombre al lado.",
+  },
+  {
+    q: "¿Cuánta gente hace falta?",
+    a: "Mínimo dos personas y máximo doce. Con una sola no arranca: no habría a quién preguntar.",
+  },
+  {
+    q: "¿De verdad no se sabe quién ha escrito qué?",
+    a: "No, y no es cuestión de confianza: las preguntas y las respuestas se guardan sin autor y sin hora, y aparecen en orden aleatorio. Que cada uno responda también su propia pregunta cierra el último hueco, porque si no, se podría deducir quién preguntó qué mirando a quién no ha contestado.",
+  },
+  {
+    q: "He visto algo ofensivo. ¿Qué hago?",
+    a: "Toca la bandera que hay junto a esa pregunta o esa respuesta. La denuncia me llega directamente, sin pasar por el resto del grupo, y la reviso a mano. Si prefieres contármelo con más detalle, escríbeme al correo de abajo.",
+  },
+  {
+    q: "El código no me funciona",
+    a: "Comprueba que la partida no haya empezado ya: una vez arranca, no se puede entrar. Las salas también se cierran solas cuando sale la última persona, y las abandonadas se borran a las 12 horas. Si es así, crea una nueva.",
+  },
+  {
+    q: "Se me ha cerrado la app en mitad de la partida",
+    a: "No pasa nada: al volver a abrirla, entras otra vez donde lo dejaste. La partida no depende del móvil de quien creó la sala, así que sigue aunque a esa persona se le vaya el internet.",
+  },
+  {
+    q: "¿Se puede jugar entre iPhone y navegador a la vez?",
+    a: "Sí. La app y esta web comparten las mismas salas: alguien puede entrar desde el móvil y otra persona desde el ordenador con el mismo código.",
+  },
+  {
+    q: "¿Cómo borro mis datos?",
+    a: "Salir de la partida ya borra tu apodo y tu avatar del servidor, y la sala entera desaparece cuando se va la última persona. Para borrar lo que queda en el dispositivo, desinstala la app o limpia los datos del navegador. Los detalles están en la política de privacidad.",
+  },
+  {
+    q: "¿Qué necesito para instalarla?",
+    a: "Un iPhone con iOS 18 o superior. La versión web funciona en cualquier navegador moderno, en móvil y en ordenador, sin instalar nada.",
+  },
+];
+---
+
+<Doc
+  title="Soporte"
+  description="Ayuda, preguntas frecuentes y contacto de Anónimas, el juego de preguntas anónimas para grupos."
+>
+  <p>
+    <strong>Anónimas</strong> es un juego de preguntas para grupos de 2 a 12 personas, sin
+    cuentas ni registro. Aquí tienes lo que suele preguntarse y cómo dar conmigo.
+  </p>
+
+  <div class="card">
+    <p class="eyebrow">Escríbeme</p>
+    <p class="mail"><a href={`mailto:${email}`}>{email}</a></p>
+    <p>
+      Contesto a todo: fallos, sugerencias, denuncias de contenido y peticiones sobre tus
+      datos. Suelo responder en menos de 48 horas.
+    </p>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+
+  {
+    faqs.map((faq) => (
+      <>
+        <h3>{faq.q}</h3>
+        <p>{faq.a}</p>
+      </>
+    ))
+  }
+
+  <h2>Denunciar contenido</h2>
+  <p>
+    En la pantalla final, cada pregunta y cada respuesta llevan un botón con una bandera.
+    Al tocarlo se envía la denuncia directamente, sin que la vea el resto del grupo. Las
+    reviso a mano y actúo sobre lo que incumpla las normas: nada de acoso, insultos,
+    amenazas, contenido sexual ni dirigido a menores. Si algo es urgente o prefieres
+    contarlo con detalle, escríbeme a <a href={`mailto:${email}`}>{email}</a>.
+  </p>
+
+  <h2>Privacidad</h2>
+  <p>
+    No se recoge ningún dato personal y las preguntas y respuestas se guardan sin saber
+    quién las escribió. Está todo explicado en la
+    <a href="/privacidad">política de privacidad</a>.
+  </p>
+</Doc>
+
+<style>
+  .mail {
+    margin: 8px 0 14px;
+    font-size: clamp(18px, 4.5vw, 22px);
+    font-weight: 800;
+    word-break: break-word;
+  }
+
+  .mail a {
+    text-decoration: none;
+  }
+</style>

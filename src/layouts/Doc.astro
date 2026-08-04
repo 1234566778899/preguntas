@@ -1,0 +1,168 @@
+---
+import "../styles/global.css";
+
+// Páginas de texto: privacidad y soporte. Existen porque App Store Connect exige
+// una URL pública para cada una y no acepta un `mailto:`. Nada de JavaScript:
+// tienen que abrir y leerse aunque el juego esté caído.
+interface Props {
+  title: string;
+  description: string;
+  updated?: string;
+}
+
+const { title, description, updated } = Astro.props;
+const fullTitle = `${title} — Anónimas`;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0813" />
+    <meta name="description" content={description} />
+    <title>{fullTitle}</title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="es_ES" />
+  </head>
+
+  <body class="doc">
+    <main>
+      <a class="back press" href="/">‹ Volver al juego</a>
+
+      <h1>{title}</h1>
+      {updated && <p class="eyebrow updated">Última actualización: {updated}</p>}
+
+      <slot />
+
+      <footer>
+        <nav>
+          <a href="/privacidad">Privacidad</a>
+          <a href="/soporte">Soporte</a>
+          <a href="/">Jugar</a>
+        </nav>
+        <p class="muted">© 2026 Carlos Jesús Ordaz Hoyos</p>
+      </footer>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  /* El juego bloquea el scroll del body porque ocupa la pantalla entera.
+     Aquí hace falta lo contrario: texto largo que se lee de arriba abajo. */
+  body.doc {
+    display: block;
+    place-items: initial;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(124, 92, 255, 0.22), transparent 70%),
+      var(--ink);
+  }
+
+  body.doc main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 24px 24px 64px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  body.doc .back {
+    display: inline-block;
+    margin-bottom: 28px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--stroke);
+    color: var(--text-2);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  body.doc h1 {
+    font-size: clamp(30px, 7vw, 40px);
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  body.doc .updated {
+    margin-top: 10px;
+  }
+
+  body.doc h2 {
+    font-size: 21px;
+    font-weight: 800;
+    margin: 40px 0 12px;
+  }
+
+  body.doc h3 {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 24px 0 8px;
+  }
+
+  body.doc p,
+  body.doc li {
+    color: var(--text-2);
+    font-size: 16px;
+  }
+
+  body.doc p + p {
+    margin-top: 12px;
+  }
+
+  body.doc ul {
+    margin: 12px 0 0 20px;
+    display: grid;
+    gap: 10px;
+  }
+
+  body.doc strong {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  body.doc a {
+    color: var(--text);
+  }
+
+  body.doc .card {
+    padding: 22px;
+    margin-top: 20px;
+    border-radius: 24px;
+  }
+
+  body.doc .card > :first-child {
+    margin-top: 0;
+  }
+
+  body.doc footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--stroke);
+  }
+
+  body.doc footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 14px;
+  }
+
+  body.doc footer nav a {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  body.doc footer p {
+    font-size: 13px;
+  }
+</style>
