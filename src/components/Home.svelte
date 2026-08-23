@@ -4,6 +4,7 @@
   import Avatar from "./ui/Avatar.svelte";
   import Button from "./ui/Button.svelte";
   import { avatarEmojis, haptic } from "../lib/theme";
+  import { appStoreUrl } from "../lib/links";
 
   interface Props { game: Game; onterms: () => void }
   let { game, onterms }: Props = $props();
@@ -65,6 +66,14 @@
       onclick={() => game.createRoom()} />
     <Button label="Unirme con un código" icon="→" variant="ghost"
       onclick={() => (game.route = "join")} />
+    <!-- La app y la web comparten salas, así que el enlace es un extra, no un
+         muro: se puede jugar sin instalar nada. -->
+    <a class="store press" href={appStoreUrl} target="_blank" rel="noopener">
+      <svg viewBox="0 0 384 512" width="15" height="15" fill="currentColor" aria-hidden="true">
+        <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+      </svg>
+      <span>Descárgala para iPhone</span>
+    </a>
     <p class="muted tiny">Sin cuentas. Sin nombres en las respuestas.</p>
     <button class="link press" onclick={onterms}>Normas y contacto</button>
   </footer>
@@ -101,6 +110,14 @@
 
   footer { margin-top: auto; padding: 24px; display: grid; gap: 12px; justify-items: center; }
   footer :global(.btn) { width: 100%; }
+  .store {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 2px; padding: 10px 18px; border-radius: 999px;
+    background: rgba(255,255,255,.08); border: 1px solid var(--stroke);
+    color: var(--text); font-size: 14px; font-weight: 700; text-decoration: none;
+  }
+  .store svg { margin-top: -2px; }
+
   .tiny { font-size: 12px; margin-top: 6px; }
   .link { font-size: 12px; color: var(--text-2); text-decoration: underline; }
 </style>

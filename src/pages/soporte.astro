@@ -1,5 +1,6 @@
 ---
 import Doc from "../layouts/Doc.astro";
+import { appStoreUrl } from "../lib/links";
 
 const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
 
@@ -38,7 +39,7 @@ const faqs = [
   },
   {
     q: "¿Qué necesito para instalarla?",
-    a: "Un iPhone con iOS 18 o superior. La versión web funciona en cualquier navegador moderno, en móvil y en ordenador, sin instalar nada.",
+    a: "Un iPhone con iOS 18 o superior; se descarga gratis desde el App Store, con el enlace de arriba. La versión web funciona en cualquier navegador moderno, en móvil y en ordenador, sin instalar nada.",
   },
 ];
 ---
@@ -60,6 +61,15 @@ const faqs = [
       datos. Suelo responder en menos de 48 horas.
     </p>
   </div>
+
+  <h2>Descargar la app</h2>
+  <p>
+    La app de iPhone es gratis y comparte las salas con esta web: podéis jugar la misma
+    partida unos desde el móvil y otros desde el navegador.
+  </p>
+  <p class="store">
+    <a href={appStoreUrl} target="_blank" rel="noopener">Descargar Anónimas en el App Store ›</a>
+  </p>
 
   <h2>Preguntas frecuentes</h2>
 
@@ -90,6 +100,21 @@ const faqs = [
 </Doc>
 
 <style>
+  .store {
+    margin-top: 16px;
+  }
+
+  .store a {
+    display: inline-block;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--stroke);
+    font-size: 16px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
   .mail {
     margin: 8px 0 14px;
     font-size: clamp(18px, 4.5vw, 22px);

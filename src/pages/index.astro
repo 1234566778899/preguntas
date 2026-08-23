@@ -1,5 +1,6 @@
 ---
 import Game from "../components/Game.svelte";
+import { appStoreId } from "../lib/links";
 import "../styles/global.css";
 
 const title = "Anónimas — preguntas que nadie firma";
@@ -31,6 +32,9 @@ const ogImage = new URL("/og.png", Astro.site ?? Astro.url).href;
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/og.png" />
+
+    <!-- Safari en iPhone enseña arriba una banda con "Ver" que lleva a la ficha. -->
+    <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
