@@ -23,12 +23,17 @@ export interface Player {
 export interface Question {
   id: string;
   text: string;
+  /** Lo decide quien la escribe: si está activo, se puede responder con foto. */
+  allows_images: boolean;
 }
 
 export interface Answer {
   id: string;
   question_id: string;
   text: string;
+  /** Ruta dentro del bucket de Storage, no una URL: las URLs se firman al
+   *  mostrarlas y caducan. `null` en la inmensa mayoría de respuestas. */
+  image_path: string | null;
 }
 
 export interface RoomEntry {

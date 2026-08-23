@@ -5,6 +5,7 @@
   import TopBar from "./ui/TopBar.svelte";
   import WaitingDots from "./ui/WaitingDots.svelte";
   import ReportControl from "./ui/ReportControl.svelte";
+  import AnswerImage from "./ui/AnswerImage.svelte";
   import { haptic, maskFor, maskTintFor } from "../lib/theme";
 
   interface Props { game: Game }
@@ -41,6 +42,13 @@
     page = next;
   }
 
+  // En un portátil no hay dedo con el que deslizar: las flechas del teclado son
+  // lo que la gente prueba primero.
+  function onKey(event: KeyboardEvent) {
+    if (event.key === "ArrowLeft") turn(-1);
+    else if (event.key === "ArrowRight") turn(1);
+  }
+
   let startX = 0;
   function onTouchStart(e: TouchEvent) { startX = e.touches[0].clientX; }
   function onTouchEnd(e: TouchEvent) {
@@ -48,6 +56,8 @@
     if (Math.abs(dx) > 55) turn(dx < 0 ? 1 : -1);
   }
 </script>
+
+<svelte:window onkeydown={onKey} />
 
 <section class="screen">
   <TopBar {game} title="Ronda {game.room?.round ?? 1}" />
@@ -74,7 +84,12 @@
           {#each (items[page]?.answers ?? []).slice(0, visible) as answer (answer.id)}
             <div class="bubble" in:fly={{ y: 24, duration: 380 }}>
               <span class="mask" style="--tint:{maskTintFor(answer.id)}">{maskFor(answer.id)}</span>
-              <p>{answer.text}</p>
+              <div class="said">
+                {#if answer.text}<p>{answer.text}</p>{/if}
+                {#if answer.image_path}
+                  <AnswerImage {game} path={answer.image_path} />
+                {/if}
+              </div>
               <ReportControl {game} kind="answer" targetId={answer.id} />
             </div>
           {/each}
@@ -89,10 +104,20 @@
     <button class="edge right" aria-label="Siguiente" onclick={() => turn(1)} disabled={atEnd}></button>
   </div>
 
-  <div class="pips">
-    {#each items as _, i}
-      <span class:on={i === page}></span>
-    {/each}
+  <!-- Los puntos ya decían por dónde vas; ahora además se puede navegar con
+       ellos. Las flechas solo salen con ratón: en un móvil sobran y taparían. -->
+  <div class="pager">
+    <button class="step press" aria-label="Pregunta anterior"
+      disabled={page === 0} onclick={() => turn(-1)}>‹</button>
+
+    <div class="pips">
+      {#each items as _, i}
+        <span class:on={i === page}></span>
+      {/each}
+    </div>
+
+    <button class="step press" aria-label="Pregunta siguiente"
+      disabled={atEnd} onclick={() => turn(1)}>›</button>
   </div>
 
   <footer>
@@ -107,7 +132,10 @@
         </div>
       {/if}
     {:else}
-      <p class="muted hint">Desliza para seguir →</p>
+      <p class="muted hint">
+        <span class="on-touch">Desliza para seguir →</span>
+        <span class="on-mouse">Usa las flechas para seguir</span>
+      </p>
     {/if}
   </footer>
 </section>
@@ -134,19 +162,41 @@
     font-size: 20px; background: color-mix(in srgb, var(--tint) 28%, transparent);
     border: 1px solid color-mix(in srgb, var(--tint) 50%, transparent);
   }
-  .bubble p {
-    flex: 1; font-size: 17px; font-weight: 600; line-height: 1.4;
+  /* La respuesta puede ser texto, foto o las dos: por eso el envoltorio, que
+     antes no hacía falta. */
+  .said { flex: 1; min-width: 0; display: grid; gap: 8px; }
+  .said p {
+    font-size: 17px; font-weight: 600; line-height: 1.4;
     padding: 11px 14px; border-radius: 18px;
     background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
   }
 
-  /* Zonas de clic en los bordes: en escritorio no hay dedo para deslizar. */
+  /* Zonas de toque en los bordes, para quien no llegue a deslizar. Solo con
+     dedo: con ratón están las flechas, y un clic invisible sobre una foto que
+     pasa de pregunta es de las cosas que más molestan. */
   .edge { position: absolute; top: 0; bottom: 0; width: 56px; opacity: 0; }
   .edge:disabled { pointer-events: none; }
   .left { left: 0; }
   .right { right: 0; }
+  @media (hover: hover) and (pointer: fine) {
+    .edge { display: none; }
+  }
 
-  .pips { display: flex; gap: 7px; justify-content: center; padding: 14px 0; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 0; }
+  .step {
+    display: none;
+    width: 34px; height: 34px; flex: none; border-radius: 50%;
+    font-size: 19px; font-weight: 700; line-height: 1;
+    background: rgba(255,255,255,.1); border: 1px solid var(--stroke); color: var(--text);
+    transition: opacity var(--pop), background var(--pop);
+  }
+  .step:hover:not(:disabled) { background: rgba(255,255,255,.2); }
+  .step:disabled { opacity: .25; cursor: default; }
+  @media (hover: hover) and (pointer: fine) {
+    .step { display: grid; place-items: center; }
+  }
+
+  .pips { display: flex; gap: 7px; justify-content: center; }
   .pips span {
     width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.25);
     transition: width var(--pop), background var(--pop);
@@ -157,4 +207,9 @@
   footer :global(.btn) { width: 100%; }
   .waiting { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 58px; border-radius: 29px; font-size: 14px; }
   .hint { font-size: 14px; }
+  .on-mouse { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .on-touch { display: none; }
+    .on-mouse { display: inline; }
+  }
 </style>

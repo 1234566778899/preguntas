@@ -6,6 +6,10 @@ const key = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 export const supportEmail =
   import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
 
+/** Bucket privado con las fotos de las respuestas. Se lee siempre con URLs
+ *  firmadas, nunca en abierto. */
+export const answersBucket = "respuestas";
+
 export const isConfigured =
   Boolean(url) && Boolean(key) && !url.includes("TU-PROYECTO");
 

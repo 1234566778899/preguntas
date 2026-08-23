@@ -1,5 +1,5 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { supabase, isConfigured } from "./supabase";
+import { supabase, isConfigured, answersBucket } from "./supabase";
 import { paletteFor, palettes, randomAvatar, haptic, type Palette } from "./theme";
 import type {
   Answer,
@@ -13,6 +13,10 @@ import type {
 } from "./types";
 
 type Route = "home" | "join" | "game";
+
+/** Una hora de validez para las URLs firmadas: de sobra para una revelación,
+ *  y si alguien reenvía el enlace por ahí caduca solo. */
+const SIGNED_URL_TTL = 3600;
 
 const KEYS = {
   device: "anonimas.device",
@@ -51,6 +55,7 @@ export class Game {
   #channel: RealtimeChannel | null = null;
   #pendingRefresh: ReturnType<typeof setTimeout> | null = null;
   #lastPhase: GamePhase | null = null;
+  readonly #imageUrls = new Map<string, string>();
 
   constructor() {
     this.#deviceId = this.#loadDeviceId();
@@ -192,7 +197,7 @@ export class Game {
     await this.refresh();
   }
 
-  async submitQuestion(text: string) {
+  async submitQuestion(text: string, allowsImages = false) {
     const clean = text.trim();
     if (!this.room || !clean) return;
     await this.#run(async () => {
@@ -200,21 +205,30 @@ export class Game {
         p_room: this.room!.id,
         p_device: this.#deviceId,
         p_text: clean,
+        p_allows_images: allowsImages,
       });
       haptic.success();
     });
     await this.refresh();
   }
 
-  async submitAnswers(drafts: Record<string, string>) {
+  async submitAnswers(drafts: Record<string, string>, photos: Record<string, Blob> = {}) {
     if (!this.room) return;
-    // Una entrada por pregunta aunque esté vacía: el contador del servidor tiene
-    // que cuadrar con el número de preguntas para que avance la fase.
-    const p_answers = this.questions.map((q) => ({
-      question_id: q.id,
-      text: (drafts[q.id] ?? "").trim() || "🤐",
-    }));
     await this.#run(async () => {
+      // Las fotos primero: si una falla se corta aquí, y así nadie envía una
+      // respuesta a la que le falta justo lo que quería enseñar.
+      const paths = await this.#uploadPhotos(photos);
+
+      // Una entrada por pregunta aunque esté vacía: el contador del servidor
+      // tiene que cuadrar con el número de preguntas para que avance la fase.
+      const p_answers = this.questions.map((q) => ({
+        question_id: q.id,
+        image_path: paths[q.id] ?? null,
+        // La mordaza es para las que se dejan en blanco. Si hay foto, la foto
+        // ya es la respuesta y el texto sobra.
+        text: (drafts[q.id] ?? "").trim() || (paths[q.id] ? "" : "🤐"),
+      }));
+
       await this.#rpc("submit_answers", {
         p_room: this.room!.id,
         p_device: this.#deviceId,
@@ -223,6 +237,48 @@ export class Game {
       haptic.success();
     });
     await this.refresh();
+  }
+
+  /** Sube las fotos ya reducidas y devuelve su ruta por pregunta.
+   *
+   *  El nombre es un uuid suelto, sin nada del jugador: la ruta viaja en la
+   *  respuesta y no debe decir de quién es. La carpeta sí es la sala, para que
+   *  al borrarla se pueda barrer todo de una pasada. */
+  async #uploadPhotos(photos: Record<string, Blob>): Promise<Record<string, string>> {
+    const entries = Object.entries(photos);
+    if (!entries.length || !supabase || !this.room) return {};
+
+    const folder = `${this.room.id}/${this.room.round}`;
+    const paths: Record<string, string> = {};
+
+    // En serie: son dos o tres como mucho, y en paralelo una conexión mala las
+    // tumba todas a la vez.
+    for (const [questionId, blob] of entries) {
+      const path = `${folder}/${crypto.randomUUID()}.jpg`;
+      const { error } = await supabase.storage
+        .from(answersBucket)
+        .upload(path, blob, { contentType: "image/jpeg", cacheControl: "3600" });
+      if (error) throw new Error("UPLOAD_FAILED");
+      paths[questionId] = path;
+    }
+    return paths;
+  }
+
+  /** URL temporal para enseñar una foto. El bucket es privado, así que sin
+   *  firma no se ve nada; se guardan en memoria para no volver a firmar cada
+   *  vez que se pasa de pregunta en la revelación. */
+  async imageUrl(path: string): Promise<string | null> {
+    const cached = this.#imageUrls.get(path);
+    if (cached) return cached;
+    if (!supabase) return null;
+
+    const { data, error } = await supabase.storage
+      .from(answersBucket)
+      .createSignedUrl(path, SIGNED_URL_TTL);
+    if (error || !data) return null;
+
+    this.#imageUrls.set(path, data.signedUrl);
+    return data.signedUrl;
   }
 
   async playAgain() {
@@ -296,6 +352,7 @@ export class Game {
     this.answers = [];
     this.myPlayerId = null;
     this.#lastPhase = null;
+    this.#imageUrls.clear();
     this.route = "home";
   }
 
@@ -452,6 +509,7 @@ function describe(error: unknown): string {
   if (text.includes("NOT_HOST")) return "Solo quien creó la sala puede hacer eso.";
   if (text.includes("WRONG_PHASE")) return "Esa jugada ya no toca.";
   if (text.includes("TOO_MANY_REPORTS")) return "Demasiadas denuncias seguidas. Prueba más tarde.";
+  if (text.includes("UPLOAD_FAILED")) return "No se pudo subir la foto. Revisa tu conexión.";
   if (text.includes("Failed to fetch") || text.includes("NetworkError")) {
     return "Sin conexión. Revisa tu internet.";
   }

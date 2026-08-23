@@ -11,6 +11,7 @@
 
   const LIMIT = 280;
   let text = $state("");
+  let allowsImages = $state(false);
   let trimmed = $derived(text.trim());
 </script>
 
@@ -42,11 +43,30 @@
         onclick={() => { haptic.tap(); text = randomPrompt(text); }}>
         ✦ Dame una idea
       </button>
+
+      <!-- El permiso viaja con la pregunta, no con la sala: tiene sentido en
+           "enseña tu escritorio" y ninguno en "¿a quién besarías?". -->
+      <label class="card toggle" in:fly={{ y: 22, duration: 420, delay: 180 }}>
+        <div class="what">
+          <span class="name">📷 Se puede responder con foto</span>
+          <span class="dim note">
+            {allowsImages
+              ? "Recuerda: una foto delata mucho más que un texto."
+              : "Solo para esta pregunta."}
+          </span>
+        </div>
+        <input
+          type="checkbox"
+          bind:checked={allowsImages}
+          onchange={() => haptic.tap()}
+        />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
     </div>
 
     <footer>
       <Button label="Enviar pregunta" icon="➤" enabled={!!trimmed && !game.isBusy}
-        busy={game.isBusy} onclick={() => game.submitQuestion(text)} />
+        busy={game.isBusy} onclick={() => game.submitQuestion(text, allowsImages)} />
     </footer>
   </section>
 {/if}
@@ -62,5 +82,30 @@
   .count { justify-self: end; font-size: 12px; color: var(--text-3); }
   .count.warn { color: #ffc857; }
   .idea { font-size: 13px; }
+
+  .toggle {
+    width: 100%; padding: 16px 18px; display: flex; align-items: center; gap: 14px;
+    cursor: pointer; border-radius: 22px;
+  }
+  .what { flex: 1; display: grid; gap: 3px; }
+  .name { font-size: 15px; font-weight: 800; }
+  .note { font-size: 12px; line-height: 1.35; }
+
+  /* El checkbox real sigue ahí, solo que invisible: así el teclado y los
+     lectores de pantalla lo encuentran igual. */
+  .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch {
+    flex: none; width: 50px; height: 30px; border-radius: 999px; position: relative;
+    background: rgba(255,255,255,.12); border: 1px solid var(--stroke);
+    transition: background var(--pop);
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 22px; height: 22px; border-radius: 50%; background: #fff;
+    transition: transform var(--pop);
+  }
+  .toggle input:checked ~ .switch { background: rgba(74,222,128,.55); }
+  .toggle input:checked ~ .switch::after { transform: translateX(20px); }
+  .toggle input:focus-visible ~ .switch { outline: 2px solid #fff; outline-offset: 3px; }
   footer { padding: 12px 22px 16px; }
 </style>
