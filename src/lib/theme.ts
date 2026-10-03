@@ -39,7 +39,16 @@ const avatarGradients = [
   ["#EC4899", "#8B5CF6"],
 ];
 
+// Avatares premium de iOS (índices 24-35, se compran en la App Store). Aquí no
+// se pueden elegir, pero quien juega con uno desde un iPhone tiene que verse
+// con su emoji, no con el de otro.
+const premiumAvatarEmojis = [
+  "🐲", "😼", "🐶", "🦊", "🐼", "🐸", "🦈", "🦉", "🐰", "🐙", "🐦‍🔥", "🧛",
+];
+
 export function avatarEmoji(index: number): string {
+  const premium = index - avatarEmojis.length;
+  if (premium >= 0 && premium < premiumAvatarEmojis.length) return premiumAvatarEmojis[premium];
   return avatarEmojis[Math.abs(index) % avatarEmojis.length];
 }
 
