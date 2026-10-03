@@ -64,7 +64,7 @@
 
   <div class="copy">
     <h1>La verdad</h1>
-    <p class="dim">Nadie firmó nada de esto</p>
+    <p class="dim">Nadie sabe quién escribió qué</p>
   </div>
 
   <div class="stage" ontouchstart={onTouchStart} ontouchend={onTouchEnd}>

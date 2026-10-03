@@ -32,7 +32,7 @@
         <span in:fly={{ y: 34, duration: 460, delay: i * 45 }}>{letter}</span>
       {/each}
     </h1>
-    <p class="dim" in:fly={{ y: 22, duration: 420, delay: 400 }}>preguntas que nadie firma</p>
+    <p class="dim" in:fly={{ y: 22, duration: 420, delay: 400 }}>preguntas anónimas entre amigos</p>
   </div>
 
   <div class="setup" in:fly={{ y: 22, duration: 420, delay: 460 }}>
