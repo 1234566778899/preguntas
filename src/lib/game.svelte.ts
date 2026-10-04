@@ -1,5 +1,6 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase, isConfigured, answersBucket } from "./supabase";
+import { forgetImageUrls, signedImageUrl } from "./storage";
 import { paletteFor, palettes, randomAvatar, haptic, type Palette } from "./theme";
 import type {
   Answer,
@@ -12,11 +13,7 @@ import type {
   RoomEntry,
 } from "./types";
 
-type Route = "home" | "join" | "game";
-
-/** Una hora de validez para las URLs firmadas: de sobra para una revelación,
- *  y si alguien reenvía el enlace por ahí caduca solo. */
-const SIGNED_URL_TTL = 3600;
+type Route = "home" | "join" | "game" | "screen";
 
 const KEYS = {
   device: "anonimas.device",
@@ -47,6 +44,12 @@ export class Game {
   banner = $state<string | null>(null);
   hasAcceptedTerms = $state(false);
   confettiTrigger = $state(0);
+  /** Cuándo vio este dispositivo empezar la fase actual. Es la referencia de la
+   *  cuenta atrás: cada móvil la toma al recibir el cambio, que llega a todos
+   *  casi a la vez, así que los relojes van parejos sin guardar nada en la base. */
+  phaseStartedAt = $state(Date.now());
+  /** Código que llegó en el enlace (`?sala=ABCDE`), para rellenar la pantalla de unirse. */
+  pendingCode = $state("");
   readonly isConfigured = isConfigured;
 
   /** Contador y no booleano: con dos operaciones solapadas un booleano se atasca. */
@@ -55,12 +58,12 @@ export class Game {
   #channel: RealtimeChannel | null = null;
   #pendingRefresh: ReturnType<typeof setTimeout> | null = null;
   #lastPhase: GamePhase | null = null;
-  readonly #imageUrls = new Map<string, string>();
 
   constructor() {
     this.#deviceId = this.#loadDeviceId();
     this.name = localStorage.getItem(KEYS.name) ?? "";
     this.hasAcceptedTerms = localStorage.getItem(KEYS.terms) === "1";
+    this.#readLink();
 
     const storedAvatar = localStorage.getItem(KEYS.avatar);
     if (storedAvatar !== null) {
@@ -70,6 +73,20 @@ export class Game {
       this.avatar = randomAvatar();
       localStorage.setItem(KEYS.avatar, String(this.avatar));
     }
+  }
+
+  /** Lee el enlace de entrada (`?sala=ABCDE`, `?pantalla`). Va en el
+   *  constructor y no al montar: si no, la primera pintada sería la portada o
+   *  las normas y se vería un parpadeo antes de saltar a la pantalla buena. */
+  #readLink() {
+    const params = new URLSearchParams(location.search);
+    const invited = (params.get("sala") ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
+    const wantsScreen = params.has("pantalla");
+    if (!invited && !wantsScreen) return;
+    // Se quita de la barra para que al recargar no vuelva a saltar.
+    history.replaceState(null, "", location.pathname);
+    this.pendingCode = invited;
+    if (wantsScreen) this.route = "screen";
   }
 
   #loadDeviceId(): string {
@@ -264,21 +281,9 @@ export class Game {
     return paths;
   }
 
-  /** URL temporal para enseñar una foto. El bucket es privado, así que sin
-   *  firma no se ve nada; se guardan en memoria para no volver a firmar cada
-   *  vez que se pasa de pregunta en la revelación. */
-  async imageUrl(path: string): Promise<string | null> {
-    const cached = this.#imageUrls.get(path);
-    if (cached) return cached;
-    if (!supabase) return null;
-
-    const { data, error } = await supabase.storage
-      .from(answersBucket)
-      .createSignedUrl(path, SIGNED_URL_TTL);
-    if (error || !data) return null;
-
-    this.#imageUrls.set(path, data.signedUrl);
-    return data.signedUrl;
+  /** URL firmada de una foto de respuesta (ver `storage.ts`). */
+  imageUrl(path: string): Promise<string | null> {
+    return signedImageUrl(path);
   }
 
   async playAgain() {
@@ -318,7 +323,16 @@ export class Game {
 
   /** Al abrir la web, si quedó una partida a medias se vuelve a entrar solo. */
   async restoreSession() {
+    // Un enlace de invitación manda sobre la partida guardada: quien lo abre
+    // quiere entrar a *esa* sala (ver `#readLink`).
+    if (this.route === "screen") return;
+    const invited = this.pendingCode;
     const code = localStorage.getItem(KEYS.room);
+    if (invited && invited !== code) {
+      this.pendingCode = invited;
+      this.route = "join";
+      return;
+    }
     if (!supabase || this.room || !code) return;
 
     await this.joinRoom(code);
@@ -333,6 +347,7 @@ export class Game {
     this.room = entry.room;
     this.myPlayerId = entry.player.id;
     this.#lastPhase = entry.room.phase;
+    this.phaseStartedAt = Date.now();
     localStorage.setItem(KEYS.room, entry.room.code);
     this.route = "game";
     haptic.success();
@@ -352,7 +367,7 @@ export class Game {
     this.answers = [];
     this.myPlayerId = null;
     this.#lastPhase = null;
-    this.#imageUrls.clear();
+    forgetImageUrls();
     this.route = "home";
   }
 
@@ -415,6 +430,7 @@ export class Game {
     if (!phaseChanged) return;
 
     this.#lastPhase = room.phase;
+    this.phaseStartedAt = Date.now();
     if (room.phase === "reveal") {
       haptic.success();
       this.confettiTrigger += 1;

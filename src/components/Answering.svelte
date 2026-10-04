@@ -2,11 +2,15 @@
   import { fly } from "svelte/transition";
   import type { Game } from "../lib/game.svelte";
   import Button from "./ui/Button.svelte";
+  import Countdown from "./ui/Countdown.svelte";
+  import Icon from "./ui/Icon.svelte";
+  import Mascot from "./ui/Mascot.svelte";
   import TopBar from "./ui/TopBar.svelte";
   import WaitingRoom from "./WaitingRoom.svelte";
   import WaitingDots from "./ui/WaitingDots.svelte";
   import ReportControl from "./ui/ReportControl.svelte";
-  import { haptic } from "../lib/theme";
+  import { answeringSeconds, haptic } from "../lib/theme";
+  import { dismissKeyboard } from "../lib/actions";
   import { ACCEPTED, ImageError, prepareImage } from "../lib/images";
   import { onDestroy } from "svelte";
 
@@ -25,6 +29,7 @@
   let preparing = $state(false);
   let picker = $state<HTMLInputElement | null>(null);
 
+  let seconds = $derived(answeringSeconds(game.questions.length));
   let current = $derived(game.questions[index] ?? game.questions[0]);
   let isLast = $derived(index >= game.questions.length - 1);
   let answered = $derived(
@@ -78,19 +83,21 @@
 </script>
 
 {#if game.didSubmitAnswers}
-  <WaitingRoom {game}
+  <WaitingRoom {game} {seconds}
     title="Respuestas enviadas"
     subtitle="Cuando todos terminen se revela todo de golpe." />
 {:else if game.questions.length === 0}
   <div class="loading">
+    <Mascot pose="pensando" size={140} idle />
     <WaitingDots />
     <p class="dim">Recogiendo las preguntas…</p>
   </div>
 {:else}
-  <section class="screen">
+  <section class="screen" use:dismissKeyboard>
     <TopBar {game} title="Ronda {game.room?.round ?? 1}" />
 
     <div class="progress">
+      <Countdown {seconds} startedAt={game.phaseStartedAt} />
       <div class="labels">
         <span>Pregunta {index + 1} de {game.questions.length}</span>
         <span class="muted">{answered} contestadas</span>
@@ -101,12 +108,12 @@
     <div class="stage">
       {#key current.id}
         <div
-          class="card qcard"
+          class="sticker qcard"
           in:fly={{ x: forward ? 260 : -260, duration: 380, opacity: 0 }}
           out:fly={{ x: forward ? -260 : 260, duration: 380, opacity: 0 }}
         >
           <div class="head">
-            <span class="eyebrow">🎭 Alguien preguntó</span>
+            <span class="eyebrow who"><Icon name="mask" size={18} weight={2.2} /> Alguien preguntó</span>
             <ReportControl {game} kind="question" targetId={current.id} />
           </div>
           <h1>{current.text}</h1>
@@ -126,15 +133,15 @@
                 <div class="thumb">
                   <img src={previews[current.id]} alt="Foto que vas a enviar" />
                   <button class="drop press" aria-label="Quitar la foto"
-                    onclick={() => { haptic.tap(); drop(current.id); }}>✕</button>
+                    onclick={() => { haptic.tap(); drop(current.id); }}><Icon name="x" size={14} weight={3} /></button>
                 </div>
               {:else}
                 <button class="chip press attach" disabled={preparing}
                   onclick={() => { haptic.tap(); picker?.click(); }}>
-                  {preparing ? "Preparando…" : "📷 Adjuntar una foto"}
+                  <Icon name="camera" size={14} weight={2.6} /> {preparing ? "Preparando…" : "Adjuntar una foto"}
                 </button>
               {/if}
-              <span class="muted warn">
+              <span class="dim warn">
                 Se quita la ubicación y los datos del móvil, pero lo que se ve en
                 la foto puede delatarte.
               </span>
@@ -150,13 +157,13 @@
 
     <footer>
       {#if index > 0}
-        <button class="back press" aria-label="Anterior" onclick={() => go(-1)}>‹</button>
+        <button class="back sticker press" aria-label="Anterior" onclick={() => go(-1)}><Icon name="arrow-left" size={20} weight={3} /></button>
       {/if}
       {#if isLast}
-        <Button label="Enviar respuestas" icon="✓" enabled={!game.isBusy && !preparing}
+        <Button label="Enviar respuestas" icon="check" enabled={!game.isBusy && !preparing}
           busy={game.isBusy} onclick={() => game.submitAnswers(drafts, photos)} />
       {:else}
-        <Button label="Siguiente" icon="›" onclick={() => go(1)} />
+        <Button label="Siguiente" icon="arrow-right" onclick={() => go(1)} />
       {/if}
     </footer>
   </section>
@@ -164,41 +171,39 @@
 
 <style>
   .screen { display: flex; flex-direction: column; height: 100%; }
-  .loading { height: 100%; display: grid; place-content: center; justify-items: center; gap: 18px; }
+  .loading { height: 100%; display: grid; place-content: center; justify-items: center; gap: 18px; font-size: 17px; font-weight: 800; }
 
-  .progress { padding: 0 24px 22px; display: grid; gap: 10px; }
-  .labels { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; }
+  .progress { padding: 0 22px 18px; display: grid; gap: 12px; }
+  .labels { display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; }
 
   .stage { flex: 1; position: relative; padding: 0 20px; overflow: hidden; }
   .qcard {
-    position: absolute; inset: 0 20px; padding: 24px;
-    display: grid; gap: 22px; align-content: start; border-radius: 32px;
+    position: absolute; inset: 0 24px 6px 20px; padding: 22px;
+    display: grid; gap: 18px; align-content: start; border-radius: 26px; overflow-y: auto;
   }
   .head { display: flex; align-items: center; justify-content: space-between; }
-  h1 { font-size: 26px; font-weight: 900; line-height: 1.25; }
-  hr { border: none; height: 1px; background: var(--stroke); }
-  textarea { font-size: 19px; font-weight: 600; line-height: 1.4; min-height: 90px; }
+  .who { display: inline-flex; align-items: center; gap: 8px; }
+  h1 { font-size: 24px; font-weight: 900; line-height: 1.25; }
+  hr { border: none; height: 1.5px; background: var(--divider); }
+  textarea { font-family: var(--mono); font-size: 17px; font-weight: 500; line-height: 1.5; min-height: 100px; }
 
   .picker { display: none; }
   .photo { display: grid; gap: 10px; justify-items: start; }
-  .attach { font-size: 13px; }
+  .attach { font-size: 14px; }
   .attach:disabled { opacity: .5; }
-  .warn { font-size: 12px; line-height: 1.35; }
+  .warn { font-size: 13px; line-height: 1.35; }
 
   .thumb { position: relative; }
   .thumb img {
     display: block; max-height: 150px; max-width: 100%;
-    border-radius: 16px; border: 1px solid var(--stroke);
+    border-radius: 14px; border: var(--stroke) solid var(--ink);
   }
   .drop {
-    position: absolute; top: -8px; right: -8px; width: 28px; height: 28px;
-    border-radius: 50%; font-size: 13px; font-weight: 800;
-    background: var(--ink); border: 1px solid var(--stroke); color: var(--text);
+    position: absolute; top: -10px; right: -10px; width: 30px; height: 30px;
+    border-radius: 50%; display: grid; place-items: center;
+    background: var(--paper); border: 2px solid var(--ink);
   }
 
   footer { display: flex; gap: 12px; padding: 12px 22px 16px; }
-  .back {
-    width: 58px; height: 58px; flex: none; border-radius: 29px; font-size: 22px;
-    background: rgba(255,255,255,.08); border: 1px solid var(--stroke);
-  }
+  .back { --lift: 3px; width: 60px; height: 60px; flex: none; border-radius: 18px; display: grid; place-items: center; }
 </style>

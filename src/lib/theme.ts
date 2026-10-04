@@ -1,19 +1,27 @@
 import type { GamePhase } from "./types";
+import type { IconName } from "../components/ui/Icon.svelte";
 
-/** Mismos colores que PhasePalette en Anonimas/Design/Theme.swift. */
+/** Mismos colores que PhasePalette en Anonimas/Design/Theme.swift: un color
+ *  plano por fase, para que el grupo sepa en qué momento está la partida sin
+ *  leer nada. `pop` es el color de apoyo (lo elegido, lo que destaca). */
 export interface Palette {
   key: string;
-  top: string;
-  mid: string;
-  bottom: string;
+  background: string;
+  pop: string;
 }
 
+const pink = "#F7639A";
+const yellow = "#F9C74F";
+const green = "#43CC96";
+const blue = "#5DB8F0";
+const violet = "#9479FF";
+
 export const palettes: Record<string, Palette> = {
-  home: { key: "home", top: "#7C5CFF", mid: "#4338CA", bottom: "#22D3EE" },
-  lobby: { key: "lobby", top: "#38BDF8", mid: "#6366F1", bottom: "#C084FC" },
-  asking: { key: "asking", top: "#FF5C8A", mid: "#F43F5E", bottom: "#FF9F45" },
-  answering: { key: "answering", top: "#22D3A7", mid: "#0EA5E9", bottom: "#A3E635" },
-  reveal: { key: "reveal", top: "#FFC857", mid: "#F43FA5", bottom: "#8B5CF6" },
+  home: { key: "home", background: pink, pop: yellow },
+  lobby: { key: "lobby", background: yellow, pop: pink },
+  asking: { key: "asking", background: green, pop: yellow },
+  answering: { key: "answering", background: blue, pop: yellow },
+  reveal: { key: "reveal", background: violet, pop: yellow },
 };
 
 export function paletteFor(phase: GamePhase): Palette {
@@ -28,33 +36,29 @@ export const avatarEmojis = [
   "👾", "🤖", "🎃", "👻", "🍄", "⭐️", "🔥", "🌈",
 ];
 
-const avatarGradients = [
-  ["#FF9A56", "#FF5C8A"],
-  ["#38BDF8", "#6366F1"],
-  ["#22D3A7", "#84CC16"],
-  ["#C084FC", "#7C3AED"],
-  ["#F43F5E", "#F97316"],
-  ["#0EA5E9", "#22D3EE"],
-  ["#FACC15", "#FB923C"],
-  ["#EC4899", "#8B5CF6"],
+/** Avatars.colors: planos, como las pegatinas. El contorno negro los separa
+ *  del fondo aunque coincidan. */
+const avatarColors = [
+  "#FF9A4D", "#5DB8F0", "#43CC96", "#9479FF", "#F7639A", "#B8E86B", "#F9C74F", "#FFFFFF",
 ];
 
-// Avatares premium de iOS (índices 24-35, se compran en la App Store). Aquí no
-// se pueden elegir, pero quien juega con uno desde un iPhone tiene que verse
-// con su emoji, no con el de otro.
-const premiumAvatarEmojis = [
-  "🐲", "😼", "🐶", "🦊", "🐼", "🐸", "🦈", "🦉", "🐰", "🐙", "🐦‍🔥", "🧛",
-];
+/** Cuántas caras hay en total: las 24 gratis y las 12 premium de iOS (24-35).
+ *  Las premium se compran en la App Store y aquí no se pueden elegir, pero quien
+ *  juega con una desde un iPhone tiene que verse con su cara, no con la de otro. */
+const avatarCount = avatarEmojis.length + 12;
 
-export function avatarEmoji(index: number): string {
-  const premium = index - avatarEmojis.length;
-  if (premium >= 0 && premium < premiumAvatarEmojis.length) return premiumAvatarEmojis[premium];
-  return avatarEmojis[Math.abs(index) % avatarEmojis.length];
+/** Igual que `Avatars.clamp` en Swift: un índice raro cae en una cara gratis. */
+function clampAvatar(index: number): number {
+  return index >= 0 && index < avatarCount ? index : Math.abs(index) % avatarEmojis.length;
 }
 
-export function avatarGradient(index: number): string {
-  const [a, b] = avatarGradients[Math.abs(index) % avatarGradients.length];
-  return `linear-gradient(135deg, ${a}, ${b})`;
+/** Las mismas ilustraciones que Assets.xcassets/Avatars, en `public/avatares`. */
+export function avatarImage(index: number): string {
+  return `/avatares/avatar-${String(clampAvatar(index)).padStart(2, "0")}.webp`;
+}
+
+export function avatarColor(index: number): string {
+  return avatarColors[clampAvatar(index) % avatarColors.length];
 }
 
 export function randomAvatar(): number {
@@ -63,15 +67,16 @@ export function randomAvatar(): number {
 
 /** Máscaras de la revelación. Salen del identificador de la respuesta, nunca de
  *  quien la escribió: sirven para distinguir respuestas, no para identificar. */
-const masks = ["🎭", "👤", "🕶️", "🥸", "👻", "🫥", "🎃", "🤿"];
-const maskTints = ["#FF9A56", "#38BDF8", "#22D3A7", "#C084FC", "#F43F5E", "#FACC15"];
+const masks: IconName[] = ["mask", "glasses", "eye", "question", "moon", "sparkles"];
+/** Tonos pastel de los papelitos (AnswerBubble.tints): el negro se lee en todos. */
+const maskTints = ["#FFE3CC", "#D6EEFB", "#D5F4E7", "#E6E0FF", "#FDDDE9", "#FDF0CC"];
 
 /** Primer byte del UUID, igual que `answer.id.uuid.0` en Swift. */
 function seedOf(uuid: string): number {
   return parseInt(uuid.slice(0, 2), 16) || 0;
 }
 
-export function maskFor(uuid: string): string {
+export function maskFor(uuid: string): IconName {
   return masks[seedOf(uuid) % masks.length];
 }
 
@@ -115,3 +120,17 @@ export const haptic = {
   success: () => navigator.vibrate?.([12, 40, 18]),
   failure: () => navigator.vibrate?.([28, 60, 28]),
 };
+
+/** Cuenta atrás de cada fase, como el reloj de Kahoot. Solo empuja: al llegar a
+ *  cero nadie pierde lo que escribió, pero el grupo ve que alguien se atasca. */
+export const timers = {
+  /** Segundos para escribir la pregunta. */
+  asking: 75,
+  /** Segundos por pregunta al responder, con un mínimo para partidas cortas. */
+  perAnswer: 25,
+  minAnswering: 50,
+};
+
+export function answeringSeconds(questions: number): number {
+  return Math.max(timers.minAnswering, questions * timers.perAnswer);
+}

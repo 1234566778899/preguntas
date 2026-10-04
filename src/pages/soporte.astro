@@ -1,6 +1,6 @@
 ---
 import Doc from "../layouts/Doc.astro";
-import { appStoreUrl } from "../lib/links";
+import { appStoreUrl, playStoreUrl } from "../lib/links";
 
 const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
 
@@ -30,8 +30,8 @@ const faqs = [
     a: "No pasa nada: al volver a abrirla, entras otra vez donde lo dejaste. La partida no depende del móvil de quien creó la sala, así que sigue aunque a esa persona se le vaya el internet.",
   },
   {
-    q: "¿Se puede jugar entre iPhone y navegador a la vez?",
-    a: "Sí. La app y esta web comparten las mismas salas: alguien puede entrar desde el móvil y otra persona desde el ordenador con el mismo código.",
+    q: "¿Se puede jugar entre iPhone, Android y navegador a la vez?",
+    a: "Sí. Las dos apps y esta web comparten las mismas salas: alguien puede entrar desde un iPhone, otra persona desde un Android y otra desde el ordenador, todas con el mismo código.",
   },
   {
     q: "¿Cómo borro mis datos?",
@@ -39,7 +39,7 @@ const faqs = [
   },
   {
     q: "¿Qué necesito para instalarla?",
-    a: "Un iPhone con iOS 18 o superior; se descarga gratis desde el App Store, con el enlace de arriba. La versión web funciona en cualquier navegador moderno, en móvil y en ordenador, sin instalar nada.",
+    a: "Un iPhone con iOS 18 o superior, o un Android con la versión 8.0 o superior; las dos apps son gratis. La versión web funciona en cualquier navegador moderno, en móvil y en ordenador, sin instalar nada.",
   },
 ];
 ---
@@ -64,11 +64,12 @@ const faqs = [
 
   <h2>Descargar la app</h2>
   <p>
-    La app de iPhone es gratis y comparte las salas con esta web: podéis jugar la misma
+    Las apps de iPhone y Android son gratis y comparten las salas con esta web: podéis jugar la misma
     partida unos desde el móvil y otros desde el navegador.
   </p>
   <p class="store">
-    <a href={appStoreUrl} target="_blank" rel="noopener">Descargar Anónimas en el App Store ›</a>
+    <a href={appStoreUrl} target="_blank" rel="noopener">App Store →</a>
+    <a href={playStoreUrl} target="_blank" rel="noopener">Google Play →</a>
   </p>
 
   <h2>Preguntas frecuentes</h2>
@@ -106,12 +107,14 @@ const faqs = [
 
   .store a {
     display: inline-block;
+    margin: 0 10px 10px 0;
     padding: 12px 20px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 3px 3px 0 rgba(20, 20, 20, 0.3);
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 900;
     text-decoration: none;
   }
 

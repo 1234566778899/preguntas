@@ -2,58 +2,51 @@
   import { fly } from "svelte/transition";
   import type { Game } from "../lib/game.svelte";
   import Button from "./ui/Button.svelte";
+  import Icon from "./ui/Icon.svelte";
+  import Mascot from "./ui/Mascot.svelte";
   import TopBar from "./ui/TopBar.svelte";
   import WaitingDots from "./ui/WaitingDots.svelte";
   import ReportControl from "./ui/ReportControl.svelte";
-  import AnswerImage from "./ui/AnswerImage.svelte";
-  import { haptic, maskFor, maskTintFor } from "../lib/theme";
+  import AnswerSlip from "./ui/AnswerSlip.svelte";
+  import { haptic } from "../lib/theme";
+  import { RevealSequence } from "../lib/reveal.svelte";
+  import { stamp, tiltFor } from "../lib/transitions";
 
   interface Props { game: Game }
   let { game }: Props = $props();
 
-  let page = $state(0);
-  let items = $derived(game.revealItems);
-  let atEnd = $derived(page >= items.length - 1);
-
-  // Las respuestas no aparecen de golpe: entran una a una. Es el momento bueno
-  // de la partida y merece durar un par de segundos.
-  let visible = $state(0);
-
-  $effect(() => {
-    const item = items[page];
-    if (!item) return;
-    visible = 0;
-    let cancelled = false;
-    (async () => {
-      for (let step = 1; step <= Math.max(item.answers.length, 1); step++) {
-        await new Promise((r) => setTimeout(r, step === 1 ? 220 : 160));
-        if (cancelled) return;
-        visible = step;
-        haptic.tap();
-      }
-    })();
-    return () => { cancelled = true; };
-  });
-
-  function turn(step: number) {
-    const next = page + step;
-    if (next < 0 || next >= items.length) return;
-    haptic.tap();
-    page = next;
-  }
+  const reveal = new RevealSequence(() => game.revealItems);
+  let item = $derived(reveal.current);
 
   // En un portátil no hay dedo con el que deslizar: las flechas del teclado son
-  // lo que la gente prueba primero.
+  // lo que la gente prueba primero. La barra espaciadora hace lo de tocar.
   function onKey(event: KeyboardEvent) {
-    if (event.key === "ArrowLeft") turn(-1);
-    else if (event.key === "ArrowRight") turn(1);
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("input, textarea, [role=dialog]")) return;
+    if (event.key === "ArrowLeft") reveal.turn(-1);
+    else if (event.key === "ArrowRight") reveal.turn(1);
+    else if (event.key === " ") { event.preventDefault(); reveal.advance(); }
   }
 
   let startX = 0;
   function onTouchStart(e: TouchEvent) { startX = e.touches[0].clientX; }
   function onTouchEnd(e: TouchEvent) {
     const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 55) turn(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 55) reveal.turn(dx < 0 ? 1 : -1);
+  }
+
+  // Igual que ShareText.question: solo la pregunta y las respuestas, que ya son
+  // anónimas. No hay nombres que filtrar.
+  async function share() {
+    if (!item) return;
+    haptic.tap();
+    const lines = item.answers.filter((a) => a.text && a.text !== "🤐").map((a) => `— ${a.text}`);
+    const text = `${item.question.text}\n\n${lines.join("\n")}\n\nTodo es anónimo. Jugado en Anónimas: ${location.origin}`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch { /* cancelado */ }
+    } else {
+      try { await navigator.clipboard.writeText(text); game.banner = "Copiado para compartir."; } catch { /* da igual */ }
+    }
   }
 </script>
 
@@ -63,78 +56,88 @@
   <TopBar {game} title="Ronda {game.room?.round ?? 1}" />
 
   <div class="copy">
-    <h1>La verdad</h1>
+    <Mascot pose="celebrando" size={72} />
+    <h1 class="title">La verdad</h1>
     <p class="dim">Nadie sabe quién escribió qué</p>
   </div>
 
   <div class="stage" ontouchstart={onTouchStart} ontouchend={onTouchEnd}>
-    {#key page}
-      <div class="card rcard" in:fly={{ y: 26, duration: 400 }}>
+    {#key reveal.page}
+      <div class="sticker rcard" in:fly={{ y: 30, duration: 420 }}>
         <div class="head">
-          <span class="chip">? {page + 1} DE {items.length}</span>
-          {#if items[page]}
-            <ReportControl {game} kind="question" targetId={items[page].question.id} />
-          {/if}
+          <span class="chip"><Icon name="question" size={13} weight={3} /> {reveal.page + 1} DE {reveal.items.length}</span>
+          <span class="tools">
+            <button class="tool press" aria-label="Compartir pregunta y respuestas" onclick={share}>
+              <Icon name="share" size={16} weight={2.6} />
+            </button>
+            {#if item}<ReportControl {game} kind="question" targetId={item.question.id} />{/if}
+          </span>
         </div>
 
-        <h2>{items[page]?.question.text ?? ""}</h2>
-        <hr />
+        <h2 class:alone={reveal.stage === "suspense"}>{item?.question.text ?? ""}</h2>
 
-        <div class="answers">
-          {#each (items[page]?.answers ?? []).slice(0, visible) as answer (answer.id)}
-            <div class="bubble" in:fly={{ y: 24, duration: 380 }}>
-              <span class="mask" style="--tint:{maskTintFor(answer.id)}">{maskFor(answer.id)}</span>
-              <div class="said">
-                {#if answer.text}<p>{answer.text}</p>{/if}
-                {#if answer.image_path}
-                  <AnswerImage {game} path={answer.image_path} />
-                {/if}
-              </div>
-              <ReportControl {game} kind="answer" targetId={answer.id} />
+        <!-- Tocar la tarjeta enseña lo que queda: para quien no quiere esperar. -->
+        <div class="answers" role="button" tabindex="-1" onclick={() => !reveal.allShown && reveal.skip()}
+          onkeydown={() => {}}>
+          {#if reveal.stage === "suspense"}
+            <div class="drumroll" in:fly={{ y: 10, duration: 250 }}>
+              <WaitingDots />
+              <span>Las respuestas son…</span>
             </div>
-          {/each}
-          {#if items[page] && items[page].answers.length === 0}
-            <p class="muted">Nadie respondió a esta.</p>
+          {:else}
+            {#each (item?.answers ?? []).slice(0, reveal.visible) as answer (answer.id)}
+              <div in:stamp={{ tilt: tiltFor(answer.id, 1.2) }}>
+                <AnswerSlip {answer} {game} imageUrl={(p) => game.imageUrl(p)} />
+              </div>
+            {/each}
+            {#if item && item.answers.length === 0}
+              <p class="dim">Nadie respondió a esta.</p>
+            {/if}
           {/if}
         </div>
       </div>
     {/key}
 
-    <button class="edge left" aria-label="Anterior" onclick={() => turn(-1)} disabled={page === 0}></button>
-    <button class="edge right" aria-label="Siguiente" onclick={() => turn(1)} disabled={atEnd}></button>
+    <button class="edge left" aria-label="Anterior" onclick={() => reveal.turn(-1)} disabled={reveal.page === 0}></button>
+    <button class="edge right" aria-label="Siguiente" onclick={() => reveal.turn(1)} disabled={reveal.atEnd}></button>
   </div>
 
-  <!-- Los puntos ya decían por dónde vas; ahora además se puede navegar con
-       ellos. Las flechas solo salen con ratón: en un móvil sobran y taparían. -->
+  <!-- Los puntos dicen por dónde vas. Las flechas solo salen con ratón: en un
+       móvil sobran y taparían. -->
   <div class="pager">
-    <button class="step press" aria-label="Pregunta anterior"
-      disabled={page === 0} onclick={() => turn(-1)}>‹</button>
+    <button class="step sticker press" aria-label="Pregunta anterior"
+      disabled={reveal.page === 0} onclick={() => reveal.turn(-1)}><Icon name="chevron-left" size={16} weight={3} /></button>
 
-    <div class="pips">
-      {#each items as _, i}
-        <span class:on={i === page}></span>
+    <div class="pips" aria-label="Pregunta {reveal.page + 1} de {reveal.items.length}">
+      {#each reveal.items as _, i}
+        <span class:on={i === reveal.page}></span>
       {/each}
     </div>
 
-    <button class="step press" aria-label="Pregunta siguiente"
-      disabled={atEnd} onclick={() => turn(1)}>›</button>
+    <button class="step sticker press" aria-label="Pregunta siguiente"
+      disabled={reveal.atEnd} onclick={() => reveal.turn(1)}><Icon name="chevron-right" size={16} weight={3} /></button>
   </div>
 
   <footer>
-    {#if atEnd}
+    {#if reveal.atEnd && reveal.allShown}
       {#if game.isHost}
-        <Button label="Otra ronda" icon="↻" enabled={!game.isBusy} busy={game.isBusy}
+        <Button label="Otra ronda" icon="refresh" enabled={!game.isBusy} busy={game.isBusy}
           onclick={() => game.playAgain()} />
       {:else}
-        <div class="waiting card">
+        <div class="waiting sticker">
           <WaitingDots />
-          <span class="dim">Quien creó la sala decide si hay otra</span>
+          <span>Quien creó la sala decide si hay otra</span>
         </div>
       {/if}
+    {:else if !reveal.allShown}
+      <button class="chip press" onclick={() => reveal.skip()}>
+        <Icon name="skip" size={13} weight={2.6} /> Ver todas ya
+      </button>
     {:else}
-      <p class="muted hint">
-        <span class="on-touch">Desliza para seguir →</span>
+      <p class="hint">
+        <span class="on-touch">Desliza para seguir</span>
         <span class="on-mouse">Usa las flechas para seguir</span>
+        <Icon name="arrow-right" size={16} weight={3} />
       </p>
     {/if}
   </footer>
@@ -142,39 +145,28 @@
 
 <style>
   .screen { display: flex; flex-direction: column; height: 100%; }
-  .copy { text-align: center; padding-bottom: 18px; }
-  h1 { font-size: 28px; font-weight: 900; }
-  .copy p { font-size: 12px; margin-top: 6px; }
+  .copy { text-align: center; padding-bottom: 14px; display: grid; justify-items: center; gap: 2px; }
+  .copy p { font-size: 14px; font-weight: 700; }
 
   .stage { flex: 1; position: relative; padding: 0 20px; overflow: hidden; }
   .rcard {
-    position: absolute; inset: 0 20px; padding: 24px; border-radius: 32px;
-    display: grid; gap: 18px; grid-template-rows: auto auto auto 1fr;
+    position: absolute; inset: 0 24px 6px 20px; padding: 20px; border-radius: 26px;
+    display: grid; gap: 16px; grid-template-rows: auto auto 1fr;
   }
   .head { display: flex; align-items: center; justify-content: space-between; }
-  h2 { font-size: 25px; font-weight: 900; line-height: 1.25; }
-  hr { border: none; height: 1px; background: var(--stroke); }
-  .answers { overflow-y: auto; display: grid; gap: 12px; align-content: start; }
+  .tools { display: flex; align-items: center; gap: 2px; }
+  .tool { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; }
 
-  .bubble { display: flex; gap: 12px; align-items: start; }
-  .mask {
-    width: 38px; height: 38px; flex: none; border-radius: 50%; display: grid; place-items: center;
-    font-size: 20px; background: color-mix(in srgb, var(--tint) 28%, transparent);
-    border: 1px solid color-mix(in srgb, var(--tint) 50%, transparent);
-  }
-  /* La respuesta puede ser texto, foto o las dos: por eso el envoltorio, que
-     antes no hacía falta. */
-  .said { flex: 1; min-width: 0; display: grid; gap: 8px; }
-  .said p {
-    font-size: 17px; font-weight: 600; line-height: 1.4;
-    padding: 11px 14px; border-radius: 18px;
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
-  }
+  /* Sola, la pregunta ocupa el centro; al llegar las respuestas se encoge a su sitio. */
+  h2 { font-size: 23px; font-weight: 900; line-height: 1.25; transition: font-size var(--glide); }
+  h2.alone { font-size: 27px; }
+
+  .answers { overflow-y: auto; display: grid; gap: 12px; align-content: start; padding: 2px 4px 8px 0; outline: none; }
+  .drumroll { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 800; color: var(--text-2); padding-top: 8px; }
 
   /* Zonas de toque en los bordes, para quien no llegue a deslizar. Solo con
-     dedo: con ratón están las flechas, y un clic invisible sobre una foto que
-     pasa de pregunta es de las cosas que más molestan. */
-  .edge { position: absolute; top: 0; bottom: 0; width: 56px; opacity: 0; }
+     dedo: con ratón están las flechas. */
+  .edge { position: absolute; top: 0; bottom: 0; width: 40px; opacity: 0; }
   .edge:disabled { pointer-events: none; }
   .left { left: 0; }
   .right { right: 0; }
@@ -184,29 +176,25 @@
 
   .pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 14px 0; }
   .step {
-    display: none;
-    width: 34px; height: 34px; flex: none; border-radius: 50%;
-    font-size: 19px; font-weight: 700; line-height: 1;
-    background: rgba(255,255,255,.1); border: 1px solid var(--stroke); color: var(--text);
-    transition: opacity var(--pop), background var(--pop);
+    --lift: 2px;
+    display: none; width: 36px; height: 36px; flex: none; border-radius: 50%;
   }
-  .step:hover:not(:disabled) { background: rgba(255,255,255,.2); }
-  .step:disabled { opacity: .25; cursor: default; }
+  .step:disabled { opacity: .3; cursor: default; }
   @media (hover: hover) and (pointer: fine) {
     .step { display: grid; place-items: center; }
   }
 
   .pips { display: flex; gap: 7px; justify-content: center; }
   .pips span {
-    width: 7px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.25);
+    width: 7px; height: 7px; border-radius: 999px; background: rgba(20,20,20,.28);
     transition: width var(--pop), background var(--pop);
   }
-  .pips span.on { width: 22px; background: rgba(255,255,255,.95); }
+  .pips span.on { width: 22px; background: var(--ink); }
 
   footer { padding: 0 22px 16px; min-height: 74px; display: grid; place-items: center; }
   footer :global(.btn) { width: 100%; }
-  .waiting { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 58px; border-radius: 29px; font-size: 14px; }
-  .hint { font-size: 14px; }
+  .waiting { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 58px; border-radius: 18px; font-size: 15px; font-weight: 900; padding: 0 12px; }
+  .hint { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 900; }
   .on-mouse { display: none; }
   @media (hover: hover) and (pointer: fine) {
     .on-touch { display: none; }

@@ -2,6 +2,8 @@
   import type { Game } from "../../lib/game.svelte";
   import type { ReportKind } from "../../lib/types";
   import { haptic } from "../../lib/theme";
+  import Icon from "./Icon.svelte";
+  import Sheet from "./Sheet.svelte";
 
   interface Props {
     game: Game;
@@ -36,33 +38,25 @@
   class="flag press"
   class:sent
   aria-label={sent ? "Denunciado" : "Denunciar"}
-  onclick={() => {
+  onclick={(e) => {
+    e.stopPropagation();
     if (sent) return;
     haptic.tap();
     open = true;
   }}
 >
-  {sent ? "✓" : "⚑"}
+  <Icon name={sent ? "check" : "flag"} size={15} weight={2.4} />
 </button>
 
 {#if open}
-  <div
-    class="sheet"
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
-    onclick={() => (open = false)}
-    onkeydown={(e) => e.key === "Escape" && (open = false)}
-  >
-    <div class="panel card" role="document" onclick={(e) => e.stopPropagation()}>
-      <h3>Denunciar contenido</h3>
-      <p class="dim">Nos llega una copia para revisarla. El resto del grupo no se entera.</p>
-      {#each reasons as reason}
-        <button class="reason press" onclick={() => choose(reason)}>{reason}</button>
-      {/each}
-      <button class="cancel press" onclick={() => (open = false)}>Cancelar</button>
-    </div>
-  </div>
+  <Sheet onclose={() => (open = false)}>
+    <h3 class="title">Denunciar contenido</h3>
+    <p class="dim">Nos llega una copia para revisarla. El resto del grupo no se entera.</p>
+    {#each reasons as reason}
+      <button class="reason sticker press" onclick={() => choose(reason)}>{reason}</button>
+    {/each}
+    <button class="cancel press" onclick={() => (open = false)}>Cancelar</button>
+  </Sheet>
 {/if}
 
 <style>
@@ -71,68 +65,31 @@
     height: 30px;
     flex: none;
     border-radius: 8px;
-    font-size: 13px;
-    color: var(--text-3);
-    transition: color var(--pop);
-  }
-
-  .flag.sent {
-    color: #4ade80;
-    cursor: default;
-  }
-
-  .sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
     display: grid;
-    place-items: end center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    animation: fade 200ms ease;
-  }
-
-  .panel {
-    width: 100%;
-    max-width: 420px;
-    padding: 24px;
-    display: grid;
-    gap: 8px;
-    max-height: 80vh;
-    overflow-y: auto;
-    animation: rise 320ms cubic-bezier(0.34, 1.36, 0.64, 1);
-  }
-
-  h3 {
-    font-size: 19px;
-  }
-
-  p {
-    font-size: 13px;
-    margin-bottom: 10px;
-  }
-
-  .reason,
-  .cancel {
-    height: 48px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    font-weight: 700;
-    text-align: center;
-  }
-
-  .cancel {
-    margin-top: 6px;
-    background: transparent;
+    place-items: center;
     color: var(--text-2);
   }
 
-  @keyframes fade {
-    from { opacity: 0; }
+  .flag.sent {
+    color: var(--ink);
+    cursor: default;
   }
 
-  @keyframes rise {
-    from { transform: translateY(30px); opacity: 0; }
+  h3 { font-size: 22px; }
+  p { font-size: 14px; margin-bottom: 8px; line-height: 1.4; }
+
+  .reason {
+    --lift: 3px;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .cancel {
+    height: 46px;
+    margin-top: 4px;
+    font-weight: 800;
+    color: var(--text-2);
   }
 </style>

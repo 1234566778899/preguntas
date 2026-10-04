@@ -10,16 +10,18 @@ const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
   updated="4 de agosto de 2026"
 >
   <p>
-    Esta política vale igual para la app de iPhone <strong>Anónimas</strong> y para la
-    versión web. Las dos comparten la misma base de datos y guardan exactamente lo mismo.
+    Esta política vale igual para las apps de <strong>Anónimas</strong> de iPhone y de
+    Android y para la versión web. Las tres comparten la misma base de datos y guardan
+    exactamente lo mismo.
   </p>
 
   <div class="card">
     <p>
       <strong>En corto:</strong> no hay cuentas ni registro. No se pide el correo, ni el
-      teléfono, ni el nombre real. No hay publicidad, ni analítica, ni seguimiento, ni
-      cookies. Las preguntas y las respuestas se guardan sin ninguna referencia a quién
-      las escribió, y la sala entera se borra al acabar.
+      teléfono, ni el nombre real. No hay publicidad ni perfilado. Las apps de iPhone y
+      Android no llevan ninguna analítica; esta web usa Google Analytics para contar
+      visitas, y se explica más abajo. Las preguntas y las respuestas se guardan sin
+      ninguna referencia a quién las escribió, y la sala entera se borra al acabar.
     </p>
   </div>
 
@@ -34,8 +36,9 @@ const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
   <h3>En tu dispositivo</h3>
   <p>
     Solo para que no tengas que volver a escribirlo cada vez, y para poder devolverte a
-    tu partida si cierras la app. En el iPhone se guarda en el almacenamiento de la app;
-    en la web, en el almacenamiento local del navegador. No sale de ahí ni lo lee nadie.
+    tu partida si cierras la app. En el iPhone y en Android se guarda en el
+    almacenamiento privado de la app; en la web, en el almacenamiento local del
+    navegador. No sale de ahí ni lo lee nadie.
   </p>
   <ul>
     <li>Un <strong>identificador aleatorio</strong> que se genera la primera vez. No está ligado a ti ni al dispositivo: si borras la app, desaparece y la siguiente vez es otro distinto.</li>
@@ -67,8 +70,11 @@ const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
   <ul>
     <li>Correo, teléfono, nombre real, fecha de nacimiento ni ningún dato de contacto.</li>
     <li>Contactos, fotos, micrófono, cámara ni ubicación. La app no los pide.</li>
-    <li>Identificadores publicitarios ni de seguimiento. No hay publicidad.</li>
-    <li>Analítica de uso, mapas de calor ni cookies de terceros.</li>
+    <li>Identificadores publicitarios ni de seguimiento entre apps o sitios.</li>
+    <li>
+      En las apps de iPhone y Android: ninguna analítica, ningún mapa de calor y ninguna
+      cookie de terceros. No se conectan a nada que no sea la base de datos del juego.
+    </li>
   </ul>
 
   <h2>Para qué se usa</h2>
@@ -92,7 +98,9 @@ const email = import.meta.env.PUBLIC_SUPPORT_EMAIL ?? "tu-correo@ejemplo.com";
     proveedor de infraestructura y no usa estos datos para nada propio. La versión web
     está alojada en <strong>Vercel</strong>, que registra peticiones de servidor con la
     dirección IP durante un tiempo corto por seguridad y para que la web funcione, como
-    cualquier servidor. No se vende ni se cede nada a nadie más, ni con fines publicitarios
+    cualquier servidor. Esta web (no las apps) carga además
+    <strong>Google Analytics</strong>, que cuenta visitas y usa cookies propias de
+    medición; no recoge nada de lo que escribes en la partida. No se vende ni se cede nada a nadie más, ni con fines publicitarios
     ni de ningún otro tipo.
   </p>
 

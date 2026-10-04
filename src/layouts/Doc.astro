@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { appStoreUrl } from "../lib/links";
+import { appStoreUrl, playStoreUrl } from "../lib/links";
 
 // Páginas de texto: privacidad y soporte. Existen porque App Store Connect exige
 // una URL pública para cada una y no acepta un `mailto:`. Nada de JavaScript:
@@ -29,11 +29,14 @@ const fullTitle = `${title} — Anónimas`;
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0813" />
+    <meta name="theme-color" content="#FBF7F2" />
     <meta name="description" content={description} />
     <title>{fullTitle}</title>
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:type" content="article" />
     <meta property="og:title" content={fullTitle} />
@@ -43,7 +46,7 @@ const fullTitle = `${title} — Anónimas`;
 
   <body class="doc">
     <main>
-      <a class="back press" href="/">‹ Volver al juego</a>
+      <a class="back sticker press" href="/">← Volver al juego</a>
 
       <h1>{title}</h1>
       {updated && <p class="eyebrow updated">Última actualización: {updated}</p>}
@@ -55,7 +58,8 @@ const fullTitle = `${title} — Anónimas`;
           <a href="/privacidad">Privacidad</a>
           <a href="/soporte">Soporte</a>
           <a href="/">Jugar</a>
-          <a href={appStoreUrl} target="_blank" rel="noopener">Descargar para iPhone</a>
+          <a href={appStoreUrl} target="_blank" rel="noopener">App Store</a>
+          <a href={playStoreUrl} target="_blank" rel="noopener">Google Play</a>
         </nav>
         <p class="muted">© 2026 Carlos Jesús Ordaz Hoyos</p>
       </footer>
@@ -72,9 +76,7 @@ const fullTitle = `${title} — Anónimas`;
     overflow-y: auto;
     height: auto;
     min-height: 100%;
-    background:
-      radial-gradient(120% 60% at 50% 0%, rgba(124, 92, 255, 0.22), transparent 70%),
-      var(--ink);
+    background: var(--cream);
   }
 
   body.doc main {
@@ -86,21 +88,21 @@ const fullTitle = `${title} — Anónimas`;
   }
 
   body.doc .back {
+    --lift: 3px;
     display: inline-block;
     margin-bottom: 28px;
     padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--stroke);
-    color: var(--text-2);
+    color: var(--text);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     text-decoration: none;
   }
 
   body.doc h1 {
+    font-family: var(--display);
+    font-weight: 400;
     font-size: clamp(30px, 7vw, 40px);
-    font-weight: 900;
     line-height: 1.15;
   }
 
@@ -109,14 +111,14 @@ const fullTitle = `${title} — Anónimas`;
   }
 
   body.doc h2 {
-    font-size: 21px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 900;
     margin: 40px 0 12px;
   }
 
   body.doc h3 {
     font-size: 17px;
-    font-weight: 800;
+    font-weight: 900;
     margin: 24px 0 8px;
   }
 
@@ -145,10 +147,14 @@ const fullTitle = `${title} — Anónimas`;
     color: var(--text);
   }
 
+  /* Las tarjetas de estas páginas son pegatinas, como en el juego. */
   body.doc .card {
     padding: 22px;
     margin-top: 20px;
-    border-radius: 24px;
+    border-radius: 22px;
+    background: var(--paper);
+    border: var(--stroke) solid var(--ink);
+    box-shadow: var(--lift) var(--lift) 0 var(--ink);
   }
 
   body.doc .card > :first-child {
@@ -158,7 +164,7 @@ const fullTitle = `${title} — Anónimas`;
   body.doc footer {
     margin-top: 56px;
     padding-top: 24px;
-    border-top: 1px solid var(--stroke);
+    border-top: 1.5px solid var(--divider);
   }
 
   body.doc footer nav {
@@ -170,7 +176,7 @@ const fullTitle = `${title} — Anónimas`;
 
   body.doc footer nav a {
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
   }
 
   body.doc footer p {

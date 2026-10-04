@@ -8,25 +8,21 @@
 <style>
   .dots {
     display: flex;
-    gap: 5px;
+    gap: 6px;
     align-items: center;
   }
 
   i {
-    width: 7px;
-    height: 7px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--text-2);
+    background: var(--ink);
     animation: bounce 1s ease-in-out infinite;
   }
 
   @keyframes bounce {
     0%,
-    100% {
-      transform: translateY(1.5px);
-    }
-    50% {
-      transform: translateY(-5px);
-    }
+    100% { transform: translateY(1.5px); }
+    50% { transform: translateY(-6px); }
   }
 </style>

@@ -5,7 +5,8 @@
   let canvas = $state<HTMLCanvasElement | null>(null);
 
   const LIFETIME = 4.2;
-  const COLORS = ["#FFC857", "#FF5C8A", "#7C5CFF", "#22D3A7", "#38BDF8", "#FFFFFF"];
+  // Los colores de las fases y el negro de la tinta: el confeti también es plano.
+  const COLORS = ["#F7639A", "#F9C74F", "#43CC96", "#5DB8F0", "#9479FF", "#FFFFFF", "#141414"];
 
   interface Piece {
     x: number; delay: number; speed: number; sway: number;

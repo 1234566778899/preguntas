@@ -1,8 +1,6 @@
 <script lang="ts">
-  import type { Game } from "../../lib/game.svelte";
-
-  interface Props { game: Game; path: string }
-  let { game, path }: Props = $props();
+  interface Props { path: string; imageUrl: (path: string) => Promise<string | null> }
+  let { path, imageUrl }: Props = $props();
 
   let url = $state<string | null>(null);
   let failed = $state(false);
@@ -15,7 +13,7 @@
     let cancelled = false;
     failed = false;
 
-    game.imageUrl(wanted).then((signed) => {
+    imageUrl(wanted).then((signed) => {
       if (cancelled) return;
       if (signed) url = signed;
       else failed = true;
@@ -28,7 +26,7 @@
 {#if url}
   <img src={url} alt="Foto de una respuesta anónima" loading="lazy" />
 {:else if failed}
-  <p class="muted">No se pudo cargar la foto.</p>
+  <p class="dim">No se pudo cargar la foto.</p>
 {:else}
   <div class="skeleton" aria-hidden="true"></div>
 {/if}
@@ -39,20 +37,18 @@
     width: 100%;
     max-height: 260px;
     object-fit: cover;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    border: 2px solid var(--ink);
   }
 
   .skeleton {
     height: 120px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(20, 20, 20, 0.1);
     animation: pulse 1.4s ease-in-out infinite;
   }
 
-  p {
-    font-size: 13px;
-  }
+  p { font-size: 13px; }
 
   @keyframes pulse {
     50% { opacity: 0.45; }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { avatarEmoji, avatarGradient } from "../../lib/theme";
+  import { avatarImage, avatarColor } from "../../lib/theme";
 
   interface Props {
     index: number;
@@ -10,35 +10,42 @@
   let { index, size = 56, highlighted = false }: Props = $props();
 </script>
 
+<!-- AvatarBadge: círculo de color plano con contorno negro. Elegido, se
+     levanta y deja ver su sombra dura. -->
 <div
   class="avatar"
   class:on={highlighted}
-  style="--s:{size}px; background:{avatarGradient(index)}"
+  style="--s:{size}px; background:{avatarColor(index)}"
 >
-  <span style="font-size:{size * 0.5}px">{avatarEmoji(index)}</span>
+  <img src={avatarImage(index)} alt="" width={size} height={size} draggable="false" />
 </div>
 
 <style>
   .avatar {
+    --lift: 3px;
     width: var(--s);
     height: var(--s);
     border-radius: 50%;
     display: grid;
     place-items: center;
     flex: none;
-    border: 1.5px solid rgba(255, 255, 255, 0.22);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: var(--stroke) solid var(--ink);
+    box-shadow: 0 0 0 var(--ink);
     transition:
       transform var(--pop),
-      border-color var(--pop);
+      box-shadow var(--pop);
   }
 
   .on {
-    border: 3px solid rgba(255, 255, 255, 0.95);
-    transform: scale(1.06);
+    border-width: 3px;
+    transform: translate(calc(var(--lift) * -1), calc(var(--lift) * -1));
+    box-shadow: calc(var(--lift) * 2) calc(var(--lift) * 2) 0 var(--ink);
   }
 
-  span {
-    line-height: 1;
+  /* El mismo margen que AvatarBadge en iOS: el personaje no toca el borde. */
+  img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
   }
 </style>

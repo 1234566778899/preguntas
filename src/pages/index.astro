@@ -26,12 +26,14 @@ const ogImage = new URL("/og.png", Astro.site ?? Astro.url).href;
 
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0b0813" />
+    <meta name="theme-color" content="#F7639A" />
     <meta name="description" content={description} />
     <title>{title}</title>
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/og.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Safari en iPhone enseña arriba una banda con "Ver" que lleva a la ficha. -->
     <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />
@@ -48,7 +50,7 @@ const ogImage = new URL("/og.png", Astro.site ?? Astro.url).href;
 
     <!-- Se juega a pantalla completa desde la pantalla de inicio del móvil. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Anónimas" />
   </head>
   <body>

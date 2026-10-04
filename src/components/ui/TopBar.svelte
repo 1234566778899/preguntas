@@ -1,34 +1,36 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { Game } from "../../lib/game.svelte";
   import { haptic } from "../../lib/theme";
+  import Icon from "./Icon.svelte";
+  import Sheet from "./Sheet.svelte";
 
-  interface Props { game: Game; title?: string }
-  let { game, title = "" }: Props = $props();
+  interface Props { game: Game; title?: string; trailing?: Snippet }
+  let { game, title = "", trailing }: Props = $props();
 
   let confirming = $state(false);
 </script>
 
 <header>
   <button
-    class="round press"
+    class="round sticker press"
     aria-label="Salir de la sala"
     onclick={() => { haptic.tap(); confirming = true; }}
-  >⎋</button>
+  ><Icon name="x" size={18} weight={3} /></button>
 
-  {#if title}<span class="chip">{title}</span>{/if}
+  {#if title}<span class="chip upper">{title}</span>{/if}
 
-  <span class="spacer"></span>
+  <!-- Hueco simétrico al botón de salir, para que el título quede centrado. -->
+  <span class="side">{@render trailing?.()}</span>
 </header>
 
 {#if confirming}
-  <div class="sheet" role="dialog" aria-modal="true">
-    <div class="panel card">
-      <h3>¿Salir de la sala?</h3>
-      <p class="dim">Perderás esta partida.</p>
-      <button class="danger press" onclick={() => { confirming = false; game.leave(); }}>Salir</button>
-      <button class="cancel press" onclick={() => (confirming = false)}>Quedarme</button>
-    </div>
-  </div>
+  <Sheet onclose={() => (confirming = false)}>
+    <h3 class="title">¿Salir de la sala?</h3>
+    <p class="dim">Perderás esta partida.</p>
+    <button class="danger sticker press" onclick={() => { confirming = false; game.leave(); }}>Salir</button>
+    <button class="cancel sticker press" onclick={() => (confirming = false)}>Quedarme</button>
+  </Sheet>
 {/if}
 
 <style>
@@ -40,78 +42,28 @@
   }
 
   .round {
-    width: 44px;
-    height: 44px;
+    --lift: 3px;
+    width: 46px;
+    height: 46px;
     flex: none;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--stroke);
-    font-size: 17px;
-  }
-
-  .chip {
-    margin: 0 auto;
-    text-transform: uppercase;
-  }
-
-  .spacer {
-    width: 44px;
-    flex: none;
-  }
-
-  .sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
     display: grid;
-    place-items: end center;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(4px);
-    animation: fade 200ms ease;
+    place-items: center;
   }
 
-  .panel {
-    width: 100%;
-    max-width: 420px;
-    padding: 24px;
-    display: grid;
-    gap: 10px;
-    animation: rise 320ms cubic-bezier(0.34, 1.36, 0.64, 1);
-  }
+  .upper { margin: 0 auto; text-transform: uppercase; }
 
-  h3 {
-    font-size: 20px;
-  }
+  .side { width: 46px; flex: none; display: flex; justify-content: flex-end; }
 
-  p {
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
+  h3 { font-size: 24px; }
+  p { font-size: 15px; margin-bottom: 8px; }
 
   .danger,
   .cancel {
-    height: 50px;
-    border-radius: 999px;
-    font-weight: 800;
+    height: 54px;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 900;
   }
-
-  .danger {
-    background: #f43f5e;
-    color: #fff;
-  }
-
-  .cancel {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  @keyframes fade {
-    from { opacity: 0; }
-  }
-
-  @keyframes rise {
-    from { transform: translateY(30px); opacity: 0; }
-  }
+  .danger { background: var(--warning); color: var(--paper); }
 </style>
