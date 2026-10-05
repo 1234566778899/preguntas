@@ -123,6 +123,13 @@ textarea::placeholder {
   outline-offset: 3px;
 }
 
+/* En los campos de texto ya se ve dónde se escribe por el cursor; el anillo
+   solo estorbaba. Los botones lo conservan para quien navega con teclado. */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
 /* ---------------------------------------------------------------- pegatinas */
 
 /* La pieza base del juego. `--lift` es cuánto se despega de su sombra. */

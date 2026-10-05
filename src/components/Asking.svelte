@@ -15,7 +15,6 @@
 
   const LIMIT = 280;
   let text = $state("");
-  let allowsImages = $state(false);
   let trimmed = $derived(text.trim());
 </script>
 
@@ -50,30 +49,11 @@
         onclick={() => { haptic.tap(); text = randomPrompt(text); }}>
         <Icon name="sparkles" size={14} weight={2.4} /> Dame una idea
       </button>
-
-      <!-- El permiso viaja con la pregunta, no con la sala: tiene sentido en
-           "enseña tu escritorio" y ninguno en "¿a quién besarías?". -->
-      <label class="sticker toggle" in:fly={{ y: 22, duration: 420, delay: 180 }}>
-        <div class="what">
-          <span class="name"><Icon name="camera" size={17} weight={2.6} /> Se puede responder con foto</span>
-          <span class="dim note">
-            {allowsImages
-              ? "Recuerda: una foto delata mucho más que un texto."
-              : "Solo para esta pregunta."}
-          </span>
-        </div>
-        <input
-          type="checkbox"
-          bind:checked={allowsImages}
-          onchange={() => haptic.tap()}
-        />
-        <span class="switch" aria-hidden="true"></span>
-      </label>
     </div>
 
     <footer>
       <Button label="Enviar pregunta" icon="send" enabled={!!trimmed && !game.isBusy}
-        busy={game.isBusy} onclick={() => game.submitQuestion(text, allowsImages)} />
+        busy={game.isBusy} onclick={() => game.submitQuestion(text)} />
     </footer>
   </section>
 {/if}
@@ -89,30 +69,5 @@
   .count { justify-self: end; font-size: 13px; font-weight: 700; color: var(--text-3); }
   .count.warn { color: var(--warning); }
   .idea { font-size: 14px; }
-
-  .toggle {
-    width: 100%; padding: 16px 18px; display: flex; align-items: center; gap: 14px;
-    cursor: pointer; border-radius: 20px;
-  }
-  .what { flex: 1; display: grid; gap: 3px; }
-  .name { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 900; }
-  .note { font-size: 13px; line-height: 1.35; }
-
-  /* El checkbox real sigue ahí, solo que invisible: así el teclado y los
-     lectores de pantalla lo encuentran igual. */
-  .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
-  .switch {
-    flex: none; width: 54px; height: 32px; border-radius: 999px; position: relative;
-    background: var(--paper); border: var(--stroke) solid var(--ink);
-    transition: background var(--pop);
-  }
-  .switch::after {
-    content: ""; position: absolute; top: 3px; left: 3px;
-    width: 21px; height: 21px; border-radius: 50%; background: var(--ink);
-    transition: transform var(--pop), background var(--pop);
-  }
-  .toggle input:checked ~ .switch { background: var(--ink); }
-  .toggle input:checked ~ .switch::after { transform: translateX(22px); background: var(--paper); }
-  .toggle input:focus-visible ~ .switch { outline: 3px solid var(--ink); outline-offset: 3px; }
   footer { padding: 12px 22px 16px; }
 </style>
