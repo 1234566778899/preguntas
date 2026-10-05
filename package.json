@@ -10,6 +10,7 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/svelte": "^7.0.0",
     "@supabase/supabase-js": "^2.47.0",
     "astro": "^5.0.0",
